@@ -59,9 +59,13 @@ pub fn process_all_chapters_escape(
     _: &PreprocessorContext,
 ) {
     let extra_opts = cfg.build_extra_opts();
-    book.for_each_chapter_mut(|chapter| {
-        chapter.content = process_chapter_escape(&chapter.content, &extra_opts, stylesheet_header);
-    });
+    book.chapters_mut_thin()
+        .into_par_iter()
+        .filter(|chapter| !chapter.is_draft_chapter())
+        .for_each(|chapter| {
+            *chapter.content =
+                process_chapter_escape(chapter.content, &extra_opts, stylesheet_header);
+        });
 }
 
 /// Escape Katex equations.

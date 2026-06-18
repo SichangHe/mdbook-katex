@@ -348,26 +348,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "mdbook-core"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fc1c4da7fd9e2e412f3891428f9468fab890ed159723ed0892bb85a049ac1c1"
-dependencies = [
- "anyhow",
- "regex",
- "serde",
- "serde_json",
- "toml 1.1.2+spec-1.1.0",
- "tracing",
-]
-
-[[package]]
 name = "mdbook-katex"
 version = "0.10.0"
 dependencies = [
  "clap",
  "katex",
- "mdbook-preprocessor",
+ "mdbook_preprocessor_fork4ls",
  "rayon",
  "serde",
  "serde_derive",
@@ -378,13 +364,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "mdbook-preprocessor"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8eff7b4afaafd664a649a03b8891ad8199aef359a35b911ad6c31acab38ed209"
+name = "mdbook_core_fork4ls"
+version = "0.5.2"
 dependencies = [
  "anyhow",
- "mdbook-core",
+ "regex",
+ "serde",
+ "serde_json",
+ "toml 1.1.2+spec-1.1.0",
+ "tracing",
+]
+
+[[package]]
+name = "mdbook_preprocessor_fork4ls"
+version = "0.5.2"
+dependencies = [
+ "anyhow",
+ "mdbook_core_fork4ls",
  "serde",
  "serde_json",
 ]
