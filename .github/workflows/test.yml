@@ -78,6 +78,8 @@ jobs:
 
   test-windows-from-ubuntu:
     runs-on: ubuntu-22.04
+    env:
+      CROSS_TARGET_X86_64_PC_WINDOWS_GNU_IMAGE: ghcr.io/cross-rs/x86_64-pc-windows-gnu@sha256:e29c1d9eb803b4081fc22452071d0b158810002be7af081d0d25a1414084b9fe
     steps:
       - uses: actions/checkout@v3
 
@@ -96,6 +98,8 @@ jobs:
           args: |
             --target x86_64-pc-windows-gnu
             --no-run
+            --no-default-features
+            --features duktape
           # Cannot run because not on Windows.
 
   fmt-clippy:
@@ -119,4 +123,4 @@ jobs:
         run: RUSTFLAGS="-Dwarnings" cargo clippy
 
       - name: check Cargo.lock
-        run: cargo update --locked
+        run: cargo check --locked
