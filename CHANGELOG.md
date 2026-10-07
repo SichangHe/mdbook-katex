@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0](https://github.com/SichangHe/mdbook-katex/compare/v0.10.0...v0.11.0) - 2026-10-07
+
+### Added
+
+- [**breaking**] render with katex-rs instead of a JavaScript engine
+- process mdBook chapters in parallel
+
+### Fixed
+
+- integrate maintained KaTeX fork into main
+- preserve math markup through Markdown parsing
+- make fork source installation portable
+
+### Other
+
+- repair lock and Windows GNU checks
+
 ## [0.10.0](https://github.com/lzanini/mdbook-katex/compare/v0.9.4...v0.10.0) - 2025-11-28
 
 ### Other
