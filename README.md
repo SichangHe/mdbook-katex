@@ -1,4 +1,5 @@
 # mdBook-KaTeX
+(authored by human unless marked 🤖)
 
 [![Crates.io version](https://img.shields.io/crates/v/mdbook-katex)](https://crates.io/crates/mdbook-katex)
 ![Crates.io downloads](https://img.shields.io/crates/d/mdbook-katex)
@@ -22,10 +23,10 @@ Pre-rendering uses [katex-rs](https://github.com/katex-rs/katex-rs), a Rust impl
 
 ## Getting Started
 
-First, install mdBook-KaTeX
+🤖 Install this fork from its source branch:
 
 ```shell
-cargo install mdbook-katex
+cargo install --git https://github.com/SichangHe/mdbook-katex --branch katex-rs --locked mdbook-katex
 ```
 
 Prebuilt binaries are in [Releases](https://github.com/lzanini/mdbook-katex/releases).
@@ -235,4 +236,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 ```
-

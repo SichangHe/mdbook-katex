@@ -298,6 +298,7 @@ dependencies = [
 [[package]]
 name = "mdbook_core_fork4ls"
 version = "0.5.4"
+source = "git+https://github.com/SichangHe/rust-lang--mdBook?rev=077b24fc#077b24fc0d3bdf333f3b6e02138813daae907820"
 dependencies = [
  "anyhow",
  "regex",
@@ -310,6 +311,7 @@ dependencies = [
 [[package]]
 name = "mdbook_preprocessor_fork4ls"
 version = "0.5.4"
+source = "git+https://github.com/SichangHe/rust-lang--mdBook?rev=077b24fc#077b24fc0d3bdf333f3b6e02138813daae907820"
 dependencies = [
  "anyhow",
  "mdbook_core_fork4ls",
