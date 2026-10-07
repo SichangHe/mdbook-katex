@@ -4,8 +4,28 @@ on:
   pull_request:
 
 jobs:
+  test-musl:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: test
+          args: |
+            --target x86_64-unknown-linux-musl
+
   test-ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         rust:
@@ -13,7 +33,7 @@ jobs:
           - beta
           - nightly
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -21,12 +41,14 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
+      - uses: Swatinem/rust-cache@v2
+
       - run: cargo test
 
   test-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -34,12 +56,14 @@ jobs:
           toolchain: stable
           override: true
 
+      - uses: Swatinem/rust-cache@v2
+
       - run: cargo test
 
   test-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -48,18 +72,53 @@ jobs:
           target: x86_64-pc-windows-msvc
           override: true
 
+      - uses: Swatinem/rust-cache@v2
+
       - run: cargo test
 
-  RustFmt:
-    runs-on: ubuntu-latest
+  test-windows-from-ubuntu:
+    runs-on: ubuntu-22.04
+    env:
+      CROSS_TARGET_X86_64_PC_WINDOWS_GNU_IMAGE: ghcr.io/cross-rs/x86_64-pc-windows-gnu@sha256:e29c1d9eb803b4081fc22452071d0b158810002be7af081d0d25a1414084b9fe
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-gnu
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: test
+          args: |
+            --target x86_64-pc-windows-gnu
+            --no-run
+          # Cannot run because not on Windows.
+
+  fmt-clippy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-          components: rustfmt
+          components: clippy, rustfmt
 
-      - run: cargo fmt -- --check
+      - uses: Swatinem/rust-cache@v2
+
+      - name: check formatting
+        run: cargo fmt -- --check
+
+      - name: clippy
+        run: RUSTFLAGS="-Dwarnings" cargo clippy
+
+      - name: check Cargo.lock
+        run: cargo check --locked

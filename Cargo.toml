@@ -1,25 +1,38 @@
 [package]
-name = "mdbook-katex2"
-version = "0.2.11"
+name = "mdbook-katex"
+version = "0.10.0"
 authors = [
     "Lucas Zanini <zanini.lcs@gmail.com>",
     "Steven Hé (Sīchàng) <stevensichanghe@gmail.com>",
 ]
 edition = "2021"
-description = "mdBook preprocessor rendering LaTex equations to HTML."
+description = "mdBook preprocessor rendering LaTeX equations to HTML."
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/lzanini/mdbook-katex"
 
 [dependencies]
-clap = "3.2.23"
-mdbook = "0.4.21"
-serde = "1.0"
+clap = { version = "4.5.53", features = ["cargo"] }
+mdbook-preprocessor = { package = "mdbook_preprocessor_fork4ls", git = "https://github.com/SichangHe/rust-lang--mdBook", rev = "077b24fc", version = "0.5.4" }
+serde = "1.0.228"
 serde_derive = "1.0"
-serde_json = "1.0"
-toml = "0.5.9"
-log = "0.4"
-reqwest = { version = "0.11", features = ["blocking"] }
-regex = "1.7"
-lazy_static = "1.4"
-futures = "0.3"
-katex = { version = "0.4.5", default-features = false, features = ["duktape"] }
+serde_json = "1.0.145"
+toml = "0.9.8"
+tracing = { version = "0.1.41", default-features = false, features = [
+    "attributes",
+] }
+tracing-subscriber = { version = "0.3.20", default-features = false, features = [
+    "ansi",
+    "env-filter",
+    "fmt",
+] }
+rayon = "1.11"
+katex = { package = "katex-rs", version = "0.3.0", optional = true }
+
+[features]
+default = ["pre-render"]
+pre-render = ["dep:katex"]
+
+[profile.release]
+opt-level = "z"
+lto = true

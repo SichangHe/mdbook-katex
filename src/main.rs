@@ -1,72 +1,61 @@
-extern crate katex;
-extern crate toml;
+use clap::{crate_version, Arg, ArgMatches, Command};
+use mdbook_katex::{init_tracing, preprocess::KatexProcessor};
+use mdbook_preprocessor::errors::{Error, Result};
+use mdbook_preprocessor::{parse_input, Preprocessor};
+use std::io;
+use tracing::*;
 
-use clap::{App, Arg, ArgMatches, SubCommand};
-use mdbook::book::Book;
-use mdbook::errors::Error;
-use mdbook::preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext};
-use mdbook::renderer::{RenderContext, Renderer};
-use mdbook_katex2::KatexProcessor;
-use std::io::{self, Read};
-
-pub fn make_app() -> App<'static> {
-    App::new("mdbook-katex2")
+/// Parse CLI options.
+pub fn make_app() -> Command {
+    Command::new("mdbook-katex")
+        .version(crate_version!())
         .about("A preprocessor that renders KaTex equations to HTML.")
         .subcommand(
-            SubCommand::with_name("supports")
-                .arg(Arg::with_name("renderer").required(true))
+            Command::new("supports")
+                .arg(Arg::new("renderer").required(true))
                 .about("Check whether a renderer is supported by this preprocessor"),
         )
 }
 
-fn check_mdbook_version(version: &String) -> Result<(), Error> {
-    if version != mdbook::MDBOOK_VERSION {
-        Err(Error::msg(format!(
-            "Katex preprocessor/renderer using different mdbook version, {},\
-            than it was built against, {}",
-            mdbook::MDBOOK_VERSION,
-            &version
-        )))
-    } else {
-        Ok(())
+/// Produce a warning on mdBook version mismatch.
+fn check_mdbook_version(version: &str) {
+    if version != mdbook_preprocessor::MDBOOK_VERSION {
+        warn!(
+            "This mdbook-katex was built against mdbook v{}, \
+            but we are being called from mdbook v{version}. \
+            If you have any issue, this might be a reason.",
+            mdbook_preprocessor::MDBOOK_VERSION,
+        )
     }
 }
 
-fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> Result<(), Error> {
-    let renderer = sub_args.value_of("renderer").expect("Required argument");
-    let supported = pre.supports_renderer(&renderer);
+/// Tell mdBook if we support what it asks for.
+fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> Result<()> {
+    let renderer = sub_args
+        .get_one::<String>("renderer")
+        .expect("Required argument");
+    let supported = pre.supports_renderer(renderer).unwrap_or(false);
     if supported {
         Ok(())
     } else {
         Err(Error::msg(format!(
-            "The katex preprocessor does not support the '{}' renderer",
-            &renderer
+            "The katex preprocessor does not support the '{renderer}' renderer",
         )))
     }
 }
 
-fn handle_preprocessing(
-    pre: &dyn Preprocessor,
-    ctx: &PreprocessorContext,
-    book: &Book,
-) -> Result<(), Error> {
-    // check mdbook version
-    check_mdbook_version(&ctx.mdbook_version)?;
+/// Preprocess `book` using `pre` and print it out.
+fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<()> {
+    let (ctx, book) = parse_input(io::stdin())?;
+    check_mdbook_version(&ctx.mdbook_version);
 
-    let processed_book = pre.run(&ctx, book.clone())?;
+    let processed_book = pre.run(&ctx, book)?;
     serde_json::to_writer(io::stdout(), &processed_book)?;
     Ok(())
 }
 
-fn handle_rendering(ctx: &RenderContext, rend: &dyn Renderer) -> Result<(), Error> {
-    check_mdbook_version(&ctx.version)?;
-    rend.render(&ctx)
-}
-
-fn main() -> Result<(), Error> {
-    // grab book data from stdin
-    let mut book_data = String::new();
-    io::stdin().read_to_string(&mut book_data)?;
+fn main() -> Result<()> {
+    init_tracing();
 
     // set up app
     let matches = make_app().get_matches();
@@ -75,17 +64,9 @@ fn main() -> Result<(), Error> {
     // determine what behaviour has been requested
     if let Some(sub_args) = matches.subcommand_matches("supports") {
         // handle cmdline supports
-        return handle_supports(&pre, &sub_args);
-    } else if let Ok((ctx, book)) = CmdPreprocessor::parse_input(book_data.as_bytes()) {
+        handle_supports(&pre, sub_args)
+    } else {
         // handle preprocessing
-        return handle_preprocessing(&pre, &ctx, &book);
-    } else if let Ok(ctx) = RenderContext::from_json(book_data.as_bytes()) {
-        // handle rendering
-        return handle_rendering(&ctx, &pre);
+        handle_preprocessing(&pre)
     }
-
-    Err(Error::msg(
-        "The katex preprocessor/renderer did not understand what you wanted\
-        to do",
-    ))
 }
