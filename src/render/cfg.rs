@@ -1,62 +1,58 @@
 //! Extra configurations for pre-rendering KaTeX.
+use katex::{macros::MacroDefinition, OutputFormat, Settings, TrustSetting};
+
 use super::*;
 
 impl KatexConfig {
     /// Configured output type.
     /// Defaults to `Html`, can also be `Mathml` or `HtmlAndMathml`.
-    pub fn output_type(&self) -> katex::OutputType {
+    pub fn output_type(&self) -> OutputFormat {
         match self.output.as_str() {
-            "html" => katex::OutputType::Html,
-            "mathml" => katex::OutputType::Mathml,
-            "htmlAndMathml" => katex::OutputType::HtmlAndMathml,
+            "html" => OutputFormat::Html,
+            "mathml" => OutputFormat::Mathml,
+            "htmlAndMathml" => OutputFormat::HtmlAndMathml,
             other => {
                 error!(
 "[preprocessor.katex]: `{other}` is not a valid choice for `output`! Please check your `book.toml`.
 Defaulting to `html`. Other valid choices for output are `mathml` and `htmlAndMathml`."
                 );
-                katex::OutputType::Html
+                OutputFormat::Html
             }
         }
     }
 
-    /// From `root`, load macros and generate configuration options
-    /// `(inline_opts, display_opts)`.
-    pub fn build_opts<P>(&self, root: P) -> (katex::Opts, katex::Opts)
+    /// From `root`, load macros as a `HashMap`.
+    pub fn load_macros<P>(&self, root: P) -> HashMap<String, String>
     where
         P: AsRef<Path>,
     {
-        // load macros as a HashMap
-        let macros = load_macros(root, &self.macros);
-
-        self.build_opts_from_macros(macros)
+        load_macros(root, &self.macros)
     }
 
     /// Given `macros`, generate `(inline_opts, display_opts)`.
-    pub fn build_opts_from_macros(
-        &self,
-        macros: HashMap<String, String>,
-    ) -> (katex::Opts, katex::Opts) {
-        let mut configure_katex_opts = katex::Opts::builder();
-        configure_katex_opts
-            .output_type(self.output_type())
-            .leqno(self.leqno)
-            .fleqn(self.fleqn)
-            .throw_on_error(self.throw_on_error)
-            .error_color(self.error_color.clone())
-            .macros(macros)
-            .min_rule_thickness(self.min_rule_thickness)
-            .max_size(self.max_size)
-            .max_expand(self.max_expand)
-            .trust(self.trust);
-        // inline rendering options
-        let inline_opts = configure_katex_opts
-            .clone()
-            .display_mode(false)
-            .build()
-            .unwrap();
-        // display rendering options
-        let display_opts = configure_katex_opts.display_mode(true).build().unwrap();
-        (inline_opts, display_opts)
+    /// `Settings` is not `Sync`, so each thread needs its own.
+    pub fn build_opts_from_macros(&self, macros: &HashMap<String, String>) -> (Settings, Settings) {
+        let build = |display_mode| {
+            Settings::builder()
+                .display_mode(display_mode)
+                .output(self.output_type())
+                .leqno(self.leqno)
+                .fleqn(self.fleqn)
+                .throw_on_error(self.throw_on_error)
+                .error_color(self.error_color.clone())
+                .macros(
+                    macros
+                        .iter()
+                        .map(|(name, body)| (name.clone(), MacroDefinition::String(body.clone())))
+                        .collect(),
+                )
+                .min_rule_thickness(self.min_rule_thickness)
+                .max_size(self.max_size)
+                .max_expand(self.max_expand)
+                .trust(TrustSetting::Bool(self.trust))
+                .build()
+        };
+        (build(false), build(true))
     }
 }
 

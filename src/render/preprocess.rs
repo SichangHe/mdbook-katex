@@ -1,5 +1,5 @@
 //! Preprocessing and pre-rendering with KaTeX.
-use katex::Opts;
+use katex::KatexContext;
 
 use super::*;
 
@@ -11,7 +11,8 @@ pub fn process_all_chapters_prerender(
     ctx: &PreprocessorContext,
 ) {
     let extra_opts = cfg.build_extra_opts();
-    let (inline_opts, display_opts) = cfg.build_opts(&ctx.root);
+    let macros = cfg.load_macros(&ctx.root);
+    let katex_ctx = KatexContext::default();
 
     book.chapters_mut_thin()
         .into_par_iter()
@@ -19,8 +20,9 @@ pub fn process_all_chapters_prerender(
         .for_each(|chapter| {
             *chapter.content = process_chapter_prerender(
                 chapter.content,
-                inline_opts.clone(),
-                display_opts.clone(),
+                &katex_ctx,
+                cfg,
+                &macros,
                 stylesheet_header,
                 &extra_opts,
             );
@@ -30,22 +32,26 @@ pub fn process_all_chapters_prerender(
 /// Render Katex equations in a `Chapter` as HTML, and add the Katex CSS.
 pub fn process_chapter_prerender(
     raw_content: &str,
-    inline_opts: Opts,
-    display_opts: Opts,
+    katex_ctx: &KatexContext,
+    cfg: &KatexConfig,
+    macros: &HashMap<String, String>,
     stylesheet_header: &str,
     extra_opts: &ExtraOpts,
 ) -> String {
     get_render_tasks(raw_content, stylesheet_header, extra_opts)
         .into_par_iter()
-        .map(|rend| match rend {
-            Render::Text(t) => t.into(),
-            Render::InlineTask(item) => {
-                render(item, inline_opts.clone(), extra_opts.clone(), false).into()
-            }
-            Render::DisplayTask(item) => {
-                render(item, display_opts.clone(), extra_opts.clone(), true).into()
-            }
-        })
+        .map_init(
+            || cfg.build_opts_from_macros(macros),
+            |(inline_opts, display_opts), rend| match rend {
+                Render::Text(t) => t.into(),
+                Render::InlineTask(item) => {
+                    render(item, katex_ctx, inline_opts, extra_opts, false).into()
+                }
+                Render::DisplayTask(item) => {
+                    render(item, katex_ctx, display_opts, extra_opts, true).into()
+                }
+            },
+        )
         .collect::<Vec<Cow<_>>>()
         .join("")
 }

@@ -74,7 +74,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - run: cargo test --no-default-features --features duktape
+      - run: cargo test
 
   test-windows-from-ubuntu:
     runs-on: ubuntu-22.04
@@ -98,8 +98,6 @@ jobs:
           args: |
             --target x86_64-pc-windows-gnu
             --no-run
-            --no-default-features
-            --features duktape
           # Cannot run because not on Windows.
 
   fmt-clippy:

@@ -1,5 +1,5 @@
 //! Render KaTeX math block to HTML
-use katex::{Error, Opts};
+use katex::{KatexContext, Settings};
 
 use super::*;
 
@@ -10,12 +10,18 @@ mod preprocess;
 
 /// Render a math block `item` into HTML following `opts`.
 /// Wrap result in `<data>` tag if `extra_opts.include_src`.
-#[instrument(skip(opts, extra_opts, display))]
-pub fn render(item: &str, opts: Opts, extra_opts: ExtraOpts, display: bool) -> String {
+#[instrument(skip(katex_ctx, opts, extra_opts, display))]
+pub fn render(
+    item: &str,
+    katex_ctx: &KatexContext,
+    opts: &Settings,
+    extra_opts: &ExtraOpts,
+    display: bool,
+) -> String {
     let mut rendered_content = String::new();
 
     // try to render equation
-    match katex::render_with_opts(item, opts) {
+    match katex::render_to_string(katex_ctx, item, opts) {
         Ok(rendered) => {
             let rendered = rendered.replace('\n', " ");
             if extra_opts.include_src {
@@ -31,15 +37,7 @@ pub fn render(item: &str, opts: Opts, extra_opts: ExtraOpts, display: bool) -> S
         }
         // if rendering fails, keep the unrendered equation
         Err(why) => {
-            match why {
-                Error::JsExecError(why) => {
-                    warn!("Rendering failed, keeping the original content: {why}")
-                }
-                _ => error!(
-                    ?why,
-                    "Unexpected rendering failure, keeping the original content."
-                ),
-            }
+            warn!("Rendering failed, keeping the original content: {why}");
             let delimiter = match display {
                 true => &extra_opts.block_delimiter,
                 false => &extra_opts.inline_delimiter,

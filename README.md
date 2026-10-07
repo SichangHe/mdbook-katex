@@ -11,9 +11,9 @@ There are two working modes:
     - no client-side JavaScript required,
     - very fast page load,
     - customizable macros and separators.
-- [Escape mode](#escape-mode-experimental) (experimental): escapes math expressions to be rendered using either katex.js or MathJax in the browser. May be useful if having problems building mdBook-KaTeX with quickjs.
+- [Escape mode](#escape-mode-experimental) (experimental): escapes math expressions to be rendered using either katex.js or MathJax in the browser.
 
-Pre-rendering uses [the katex crate](https://github.com/xu-cheng/katex-rs).
+Pre-rendering uses [katex-rs](https://github.com/katex-rs/katex-rs), a Rust implementation of KaTeX, so no JavaScript engine or C compiler is needed to build.
 [List of LaTeX functions supported by KaTeX](https://katex.org/docs/supported.html).
 
 <p align="center">
@@ -24,19 +24,11 @@ Pre-rendering uses [the katex crate](https://github.com/xu-cheng/katex-rs).
 
 First, install mdBook-KaTeX
 
-### **Non-Windows** users
-
 ```shell
 cargo install mdbook-katex
 ```
 
-### Windows users
-
-The recommended way is to download the latest `x86_64-pc-windows-gnu.zip` from [Releases](https://github.com/lzanini/mdbook-katex/releases) for the full functionality.
-
-Otherwise, building with the default feature may fail unless you have GCC, and you may only be able to [build with the `duktape` feature](#build-options-features) with limited features.
-
-Another way is [Escape mode](#escape-mode-experimental).
+Prebuilt binaries are in [Releases](https://github.com/lzanini/mdbook-katex/releases).
 
 ### Basic setup
 
@@ -65,7 +57,7 @@ Math expressions will be rendered as HTML when running `mdbook build` or `mdbook
 
 ## Pre-render mode (default)
 
-Pre-rendering uses [the katex crate](https://github.com/xu-cheng/katex-rs).
+Pre-rendering uses [katex-rs](https://github.com/katex-rs/katex-rs), a Rust implementation of KaTeX, so no JavaScript engine or C compiler is needed to build.
 [List of LaTeX functions supported by KaTeX](https://katex.org/docs/supported.html).
 
 ### KaTeX options
@@ -206,19 +198,6 @@ Note that the double backslash above are just used to escape `\` in the TOML for
 ### Caveats
 
 `$\backslash$` does not work, but you can use `$\setminus$` instead.
-
-Only the x86_64 Linux, Windows GNU, and macOS builds have full functionality (matrix, ...) , all other builds have compromised capabilities. See [#39](https://github.com/lzanini/mdbook-katex/issues/39) for the reasons.
-
-### Build options (features)
-
-Katex supports multiple js backends: `quick-js` (default), `duktape`, and `wasm-js`.
-It is possible to build mdbook-katex with either `quick-js` (default) and `duktape`.
-
-```shell
-cargo install mdbook-katex --no-default-features --features duktape
-```
-
-Note that, for `duketape`, things such as matrices will not work. See [#67](https://github.com/lzanini/mdbook-katex/issues/67) for the reasons.
 
 ## Escape mode (experimental)
 

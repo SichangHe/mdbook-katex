@@ -22,7 +22,7 @@ pub struct KatexConfig {
     /// Max size for user-specified sizes.
     pub max_size: f64,
     /// Limit the number of macro expansions to the specified number.
-    pub max_expand: i32,
+    pub max_expand: usize,
     /// Whether to trust users' input.
     pub trust: bool,
     // other options

@@ -13,7 +13,7 @@ pub fn process_all_chapters_prerender(
 }
 
 /// Header that points to CDN for the KaTeX stylesheet.
-pub const KATEX_HEADER: &str = r#"<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+pub const KATEX_HEADER: &str = r#"<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.css">
 
 "#;
 
