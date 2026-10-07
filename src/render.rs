@@ -23,11 +23,24 @@ pub fn render(
     // try to render equation
     match katex::render_to_string(katex_ctx, item, opts) {
         Ok(rendered) => {
-            let rendered = rendered.replace('\n', " ");
+            let rendered = rendered
+                .replace('\n', " ")
+                .replace('\\', "&#92;")
+                .replace('`', "&#96;")
+                .replace('*', "&#42;")
+                .replace('_', "&#95;")
+                .replace('~', "&#126;");
             if extra_opts.include_src {
                 // Wrap around with `data.katex-src` tag.
                 rendered_content.push_str(r#"<data class="katex-src" value=""#);
-                rendered_content.push_str(&item.replace('"', r#"\""#).replace('\n', r"&#10;"));
+                rendered_content.push_str(
+                    &item
+                        .replace('&', "&amp;")
+                        .replace('"', "&quot;")
+                        .replace('<', "&lt;")
+                        .replace('>', "&gt;")
+                        .replace('\n', "&#10;"),
+                );
                 rendered_content.push_str(r#"">"#);
                 rendered_content.push_str(&rendered);
                 rendered_content.push_str(r"</data>");

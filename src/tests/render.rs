@@ -261,6 +261,19 @@ $$";
 }
 
 #[test]
+fn test_source_attribute_and_markdown_punctuation() {
+    let cfg = KatexConfig {
+        include_src: true,
+        ..KatexConfig::default()
+    };
+    let (_, rendered) =
+        test_render_with_cfg(&[r#"$\text{"<>"}$ and $\tilde{x}$"#], HashMap::new(), cfg);
+    assert!(rendered[0].contains(r#"value="\text{&quot;&lt;&gt;&quot;}""#));
+    assert!(rendered[0].contains("&#126;"));
+    assert!(!rendered[0].contains('~'));
+}
+
+#[test]
 fn test_fenced_code() {
     let raw_content = r"`\` and `` ` `` $\Leftarrow$
 ```
